@@ -18,20 +18,19 @@ public class Application extends RouteBuilder {
         SpringApplication.run(Application.class, args);
     }
 
-
     @Override
     public void configure() {
 
-        //from("netty4-http:proxy://0.0.0.0:8087")
-        from("netty4-http:http:0.0.0.0:8087")
+        from("netty4-http:proxy://0.0.0.0:8087")
+       // from("netty4-http:http:0.0.0.0:8087")
             .routeId("muis_route1")
             .multicast(new transformRequest())
             .aggregationStrategyMethodAllowNull()
             .parallelProcessing()
             .to("direct:muis_trans_req_header","direct:muis_trans_req_body")
-        .end();
+        .end()
 
-          /*   .toD("netty4-http:"
+             .toD("netty4-http:"
                 + "${headers." + Exchange.HTTP_SCHEME + "}://"
                 + "${headers." + Exchange.HTTP_HOST + "}:"
                 + "${headers." + Exchange.HTTP_PORT + "}"
@@ -39,18 +38,17 @@ public class Application extends RouteBuilder {
             .convertBodyTo(String.class)
             .log(LoggingLevel.INFO, "Backend response in.headers: \n${in.headers}")
             .log(LoggingLevel.INFO, "Backend response body: \n${body}");
-   */
-        
+           
                 
                 from("direct:muis_trans_req_header")
                     .routeId("muis_route1.1")
                     .log("muis_route1.1 ('direct:muis_trans_req_header') is being invoked ...")
                     .convertBodyTo(String.class)
-                    .to("xquery:xqueries/Header_TR_V1.0.Xquery")
+                    //.to("xquery:xqueries/Header_TR_V1.0.Xquery")
+                    .to("xquery:file:/Transform/Header_TR_V1.0.Xquery")
                 .end();
 
                 Namespaces ns = new Namespaces("ns0", "urn:Ariba:Buyer:vsap");
-
                 from("direct:muis_trans_req_body")
                     .routeId("muis_route 1.2")
                     .log("muis_route 1.2 ('direct:muis_trans_req_body') is being invoked ...")
@@ -59,8 +57,10 @@ public class Application extends RouteBuilder {
                         "//ns0:WebServiceEventInfo_WebServiceEventInfo_Item/ns0:item[1]/ns0:Flux/text()",   
                         String.class) 
                     )
-                    .log(LoggingLevel.INFO, "Flux detected: ${in.headers.Flux}")
-                    .toD("xquery:xqueries/${in.headers.Flux}_TR_V1.0.Xquery")
+                    .log(LoggingLevel.INFO, "xPath text of the <Flux> xml tag resolved to : ${in.headers.Flux}")
+                    .log(LoggingLevel.INFO, "Applying the following transformation : /Transform/${in.headers.Flux}_TR_V1.0.Xquery")
+                    //.toD("xquery:xqueries/${in.headers.Flux}_TR_V1.0.Xquery")
+                    .to("xquery:file:/Transform/${in.headers.Flux}_TR_V1.0.Xquery")
                     .removeHeader("Flux")
                 .end();
     } 
