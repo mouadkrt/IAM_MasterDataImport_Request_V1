@@ -4,4 +4,3 @@ target
 configuration/settings.xml
 .classpath
 .project
-src/main/resources/*.Xquery
