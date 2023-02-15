@@ -42,4 +42,3 @@ declare function xf:MaterialPurchasingImport_TR_V1($webServiceEventLauncherReque
 declare variable $in.body as xs:string external;
 declare variable $webServiceEventLauncherRequest1 as document-node() := fn:parse-xml($in.body);
 
-xf:MaterialPurchasingImport_TR_V1($webServiceEventLauncherRequest1)
