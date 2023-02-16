@@ -59,8 +59,8 @@ public class Application extends RouteBuilder {
                     )
                     .log(LoggingLevel.INFO, "xPath text of the <Flux> xml tag resolved to : ${in.headers.Flux}")
                     .log(LoggingLevel.INFO, "Applying the following transformation : /Transform/${in.headers.Flux}_TR_V1.0.Xquery")
-                    //.toD("xquery:xqueries/${in.headers.Flux}_TR_V1.0.Xquery")
-                    .to("xquery:file:/Transform/${in.headers.Flux}_TR_V1.0.Xquery")
+                    .toD("xquery:xqueries/${in.headers.Flux}_TR_V1.0.Xquery")
+                    //.toD("xquery:file:/Transform/${in.headers.Flux}_TR_V1.0.Xquery")
                     .removeHeader("Flux")
                 .end();
     } 
