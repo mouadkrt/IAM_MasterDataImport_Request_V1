@@ -5,7 +5,8 @@ COPY ${JAR_FILE} app.jar
 EXPOSE 8087/tcp
 ENTRYPOINT ["java","-jar","app.jar"]
 
+# mvn clean install
 # Start Docker deamon
-# docker login quay.io
 # docker build -t quay.io/msentissi/muis-fuse-masterdataimport_request_v1-transformation:1.0.0 .
+# docker login quay.io
 # docker push quay.io/msentissi/muis-fuse-masterdataimport_request_v1-transformation:1.0.0
