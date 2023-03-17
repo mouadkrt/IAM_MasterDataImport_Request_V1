@@ -21,8 +21,7 @@ public class Application extends RouteBuilder {
     @Override
     public void configure() {
 
-        from("netty4-http:proxy://0.0.0.0:8087")
-       // from("netty4-http:http:0.0.0.0:8087")
+        from("netty4-http:proxy://0.0.0.0:8443?ssl=true&keyStoreFile=/keystore_iam.jks&passphrase=123.pwdMunisys&trustStoreFile=/keystore_iam.jks")
             .routeId("muis_route1")
             .multicast(new transformRequest())
             .aggregationStrategyMethodAllowNull()
@@ -30,7 +29,11 @@ public class Application extends RouteBuilder {
             .to("direct:muis_trans_req_header","direct:muis_trans_req_body")
         .end()
 
-             .toD("netty4-http:"
+            .log(LoggingLevel.INFO, "MUIS toD : ${headers." + Exchange.HTTP_SCHEME + "}://"
+                                    + "${headers." + Exchange.HTTP_HOST + "}:"
+                                    + "${headers." + Exchange.HTTP_PORT + "}"
+                                    + "${headers." + Exchange.HTTP_PATH + "}")
+            .toD("netty4-http:"
                 + "${headers." + Exchange.HTTP_SCHEME + "}://"
                 + "${headers." + Exchange.HTTP_HOST + "}:"
                 + "${headers." + Exchange.HTTP_PORT + "}"
