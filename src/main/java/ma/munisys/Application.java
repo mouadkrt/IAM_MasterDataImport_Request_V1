@@ -2,6 +2,9 @@ package ma.munisys;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import java.util.UUID;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
@@ -23,6 +26,10 @@ public class Application extends RouteBuilder {
 
         from("netty4-http:proxy://0.0.0.0:8443?ssl=true&keyStoreFile=/keystore_iam.jks&passphrase=123.pwdMunisys&trustStoreFile=/keystore_iam.jks")
             .routeId("muis_route1")
+            .log(LoggingLevel.INFO, "-------------- IAM_MasterDataImport_Request_V1 START -----------------------\n\n\n")
+            .setHeader("X-Request-ID", constant(UUID.randomUUID()))
+            .log(LoggingLevel.INFO, "Initial received header : \n${in.headers} \n")
+            .log(LoggingLevel.INFO, "Initial received body : \n${body} \n")
             .multicast(new transformRequest())
             .aggregationStrategyMethodAllowNull()
             .parallelProcessing()
@@ -32,7 +39,7 @@ public class Application extends RouteBuilder {
             .log(LoggingLevel.INFO, "MUIS toD : ${headers." + Exchange.HTTP_SCHEME + "}://"
                                     + "${headers." + Exchange.HTTP_HOST + "}:"
                                     + "${headers." + Exchange.HTTP_PORT + "}"
-                                    + "${headers." + Exchange.HTTP_PATH + "}")
+                                    + "${headers." + Exchange.HTTP_PATH + "} \n")
             .toD("netty4-http:"
                 + "${headers." + Exchange.HTTP_SCHEME + "}://"
                 + "${headers." + Exchange.HTTP_HOST + "}:"
@@ -80,10 +87,10 @@ class transformRequest implements AggregationStrategy  {
         }
  
         String oldBody = oldExchange.getIn().getBody(String.class);
-        LOGGER.info("Inside aggregator oldExchange : " + oldBody);
+        LOGGER.info("Inside aggregator oldExchange : " + oldBody + "\n");
 
         String newBody = newExchange.getIn().getBody(String.class);
-        LOGGER.info("Inside aggregator newExchange : " + newBody);
+        LOGGER.info("Inside aggregator newExchange : " + newBody + "\n");
         
         String mergedStr = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\">" +
                                 "<soapenv:Header>" +
@@ -96,7 +103,7 @@ class transformRequest implements AggregationStrategy  {
         
         newExchange.getIn().setBody(mergedStr);
 
-        LOGGER.info("Inside aggregator merged Exchange : " + newExchange.getIn().getBody());        
+        LOGGER.info("Inside aggregator merged Exchange : " + newExchange.getIn().getBody() + "\n");        
         return newExchange;
     }
 

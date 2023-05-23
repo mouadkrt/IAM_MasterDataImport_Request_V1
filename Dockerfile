@@ -15,6 +15,8 @@ ENTRYPOINT ["java","-jar","app.jar"]
 # mvn spring-boot:run
 # mvn clean install
 # Start Docker deamon
-# docker build -t quay.io/msentissi/muis-fuse-masterdataimport_request_v1-transformation:iam_1.10 .
+# docker build -t quay.io/msentissi/muis-fuse-masterdataimport_request_v1-transformation:iam_1.11 .
+# Tag it and push to quay
+# docker tag muis-fuse-masterdataimport_request_v1-transformation:iam_1.11 quay.io/msentissi/muis-fuse-masterdataimport_request_v1-transformation:iam_1.11
 # docker login quay.io
-# docker push quay.io/msentissi/muis-fuse-masterdataimport_request_v1-transformation:iam_1.10
+# docker push quay.io/msentissi/muis-fuse-masterdataimport_request_v1-transformation:iam_1.11
