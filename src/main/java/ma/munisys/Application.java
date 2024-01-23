@@ -26,7 +26,7 @@ public class Application extends RouteBuilder {
 
         from("netty4-http:proxy://0.0.0.0:8443?ssl=true&keyStoreFile=/keystore_iam.jks&passphrase=123.pwdMunisys&trustStoreFile=/keystore_iam.jks")
             .routeId("muis_route1")
-            .log(LoggingLevel.INFO, "-------------- IAM_MasterDataImport_Request_V1 START -----------------------\n\n\n")
+            .log(LoggingLevel.INFO, "-------------- IAM_MasterDataImport_Request_V1 (muis-fuse-masterdataimport_request_v1-transformation:iam_1.11-prod) START -----------------------\n\n\n")
             .setHeader("X-Request-ID", constant(UUID.randomUUID()))
             .log(LoggingLevel.INFO, "Initial received header : \n${in.headers} \n")
             .log(LoggingLevel.INFO, "Initial received body : \n${body} \n")
