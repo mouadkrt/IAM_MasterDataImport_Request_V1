@@ -17,6 +17,8 @@ import org.slf4j.LoggerFactory;
 @SpringBootApplication
 public class Application extends RouteBuilder {
 
+    static String NETTY4_HTTP_TIMEOUT = System.getenv().getOrDefault("NETTY4_HTTP_TIMEOUT", "250000");
+
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
@@ -26,15 +28,15 @@ public class Application extends RouteBuilder {
 
         from("netty4-http:proxy://0.0.0.0:8443?ssl=true&keyStoreFile=/keystore_iam.jks&passphrase=123.pwdMunisys&trustStoreFile=/keystore_iam.jks")
             .routeId("muis_route1")
-            .log(LoggingLevel.INFO, "-------------- IAM_MasterDataImport_Request_V1 (muis-fuse-masterdataimport_request_v1-transformation:iam_1.11-prod) START -----------------------\n\n\n")
+            .log(LoggingLevel.INFO, "-------------- IAM_MasterDataImport_Request_V1 (muis-fuse-masterdataimport_request_v1-transformation:iam_1.12-rec) START -----------------------\n\n\n")
             .setHeader("X-Request-ID", constant(UUID.randomUUID()))
             .log(LoggingLevel.INFO, "Initial received header : \n${in.headers} \n")
             .log(LoggingLevel.INFO, "Initial received body : \n${body} \n")
             .multicast(new transformRequest())
             .aggregationStrategyMethodAllowNull()
             .parallelProcessing()
-            .to("direct:muis_trans_req_header","direct:muis_trans_req_body")
-        .end()
+                .to("direct:muis_trans_req_header","direct:muis_trans_req_body")
+            .end()
 
             .log(LoggingLevel.INFO, "MUIS toD : ${headers." + Exchange.HTTP_SCHEME + "}://"
                                     + "${headers." + Exchange.HTTP_HOST + "}:"
@@ -44,7 +46,7 @@ public class Application extends RouteBuilder {
                 + "${headers." + Exchange.HTTP_SCHEME + "}://"
                 + "${headers." + Exchange.HTTP_HOST + "}:"
                 + "${headers." + Exchange.HTTP_PORT + "}"
-                + "${headers." + Exchange.HTTP_PATH + "}")
+                + "${headers." + Exchange.HTTP_PATH + "}?connectTimeout=60000&requestTimeout=" + NETTY4_HTTP_TIMEOUT)
             .convertBodyTo(String.class)
             .log(LoggingLevel.INFO, "Backend response in.headers: \n${in.headers}")
             .log(LoggingLevel.INFO, "Backend response body: \n${body}");
