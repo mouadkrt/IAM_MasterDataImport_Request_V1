@@ -17,7 +17,8 @@ import org.slf4j.LoggerFactory;
 @SpringBootApplication
 public class Application extends RouteBuilder {
 
-    static String NETTY4_HTTP_TIMEOUT = System.getenv().getOrDefault("NETTY4_HTTP_TIMEOUT", "250000");
+    static String REQUEST_TIMEOUT = System.getenv().getOrDefault("REQUEST_TIMEOUT", "3600000");
+    static String CONNECT_TIMEOUT = System.getenv().getOrDefault("CONNECT_TIMEOUT", "60000");
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
@@ -26,27 +27,33 @@ public class Application extends RouteBuilder {
     @Override
     public void configure() {
 
-        from("netty4-http:proxy://0.0.0.0:8443?ssl=true&keyStoreFile=/keystore_iam.jks&passphrase=123.pwdMunisys&trustStoreFile=/keystore_iam.jks")
+        //from("netty4-http:proxy://0.0.0.0:8443?sync=true&keepAlive=false&disconnect=false&reuseChannel=true&backlog=1000&ssl=true&keyStoreFile=/keystore_rec_iam.jks&passphrase=123.pwdMunisys&trustStoreFile=/keystore_iam.jks")
+        from("netty4-http:proxy://0.0.0.0:8443?backlog=200&ssl=true&keyStoreFile=/keystore_rec_iam.jks&passphrase=123.pwdMunisys&trustStoreFile=/keystore_rec_iam.jks")
             .routeId("muis_route1")
             .log(LoggingLevel.INFO, "-------------- IAM_MasterDataImport_Request_V1 (muis-fuse-masterdataimport_request_v1-transformation:iam_1.12-prod) START -----------------------\n\n\n")
             .setHeader("X-Request-ID", constant(UUID.randomUUID()))
             .log(LoggingLevel.INFO, "Initial received header : \n${in.headers} \n")
             .log(LoggingLevel.INFO, "Initial received body : \n${body} \n")
             .multicast(new transformRequest())
-            .aggregationStrategyMethodAllowNull()
-            .parallelProcessing()
-                .to("direct:muis_trans_req_header","direct:muis_trans_req_body")
-            .end()
-
+				.aggregationStrategyMethodAllowNull()
+				.parallelProcessing()
+				.to("direct:muis_trans_req_header","direct:muis_trans_req_body")
+			.end()
+        // Uncomment the two following line to let this fuse app proxy the request to some backend
+        // To be commented if this fuse app is to be used as a camel-proxy policy to let 3scale use it as a helper to transformer the request before handling it to the backend
+           //.setHeader("CamelHttpMethod", constant("POST"))
+            //.to("netty4-http:http:130.24.31.210:8090")
+        // Transformaing the backend reply
+            //.to("Receipt_Transfer_Transformation_Response.Xquery")
             .log(LoggingLevel.INFO, "MUIS toD : ${headers." + Exchange.HTTP_SCHEME + "}://"
                                     + "${headers." + Exchange.HTTP_HOST + "}:"
                                     + "${headers." + Exchange.HTTP_PORT + "}"
-                                    + "${headers." + Exchange.HTTP_PATH + "} \n")
+                                    + "${headers." + Exchange.HTTP_PATH + "}?connectTimeout="+CONNECT_TIMEOUT+"&requestTimeout="+REQUEST_TIMEOUT+"\n")
             .toD("netty4-http:"
                 + "${headers." + Exchange.HTTP_SCHEME + "}://"
                 + "${headers." + Exchange.HTTP_HOST + "}:"
                 + "${headers." + Exchange.HTTP_PORT + "}"
-                + "${headers." + Exchange.HTTP_PATH + "}?connectTimeout=60000&requestTimeout=" + NETTY4_HTTP_TIMEOUT)
+                + "${headers." + Exchange.HTTP_PATH + "}?connectTimeout="+CONNECT_TIMEOUT+"&requestTimeout="+REQUEST_TIMEOUT)
             .convertBodyTo(String.class)
             .log(LoggingLevel.INFO, "Backend response in.headers: \n${in.headers}")
             .log(LoggingLevel.INFO, "Backend response body: \n${body}");
@@ -56,8 +63,8 @@ public class Application extends RouteBuilder {
                     .routeId("muis_route1.1")
                     .log("muis_route1.1 ('direct:muis_trans_req_header') is being invoked ...")
                     .convertBodyTo(String.class)
-                    //.to("xquery:xqueries/Header_TR_V1.0.Xquery")
                     .to("xquery:file:/Transform/Header_TR_V1.0.Xquery")
+                    //.to("xquery:xqueries/Header_TR_V1.0.Xquery") // Enable this for local dev troubleshooting, and disable the above line
                 .end();
 
                 Namespaces ns = new Namespaces("ns0", "urn:Ariba:Buyer:vsap");
@@ -105,7 +112,8 @@ class transformRequest implements AggregationStrategy  {
         
         newExchange.getIn().setBody(mergedStr);
 
-        LOGGER.info("Inside aggregator merged Exchange : " + newExchange.getIn().getBody() + "\n");        
+        LOGGER.info("Inside aggregator merged Exchange : " + newExchange.getIn().getBody() + "\n");
+        LOGGER.info("Inside aggregator merged Exchange.HTTP_RESPONSE_CODE : " + Exchange.HTTP_RESPONSE_CODE + "\n");
         return newExchange;
     }
 
