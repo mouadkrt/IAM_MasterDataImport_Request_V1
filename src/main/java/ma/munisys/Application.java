@@ -28,7 +28,7 @@ public class Application extends RouteBuilder {
     public void configure() {
 
         //from("netty4-http:proxy://0.0.0.0:8443?sync=true&keepAlive=false&disconnect=false&reuseChannel=true&backlog=1000&ssl=true&keyStoreFile=/keystore_rec_iam.jks&passphrase=123.pwdMunisys&trustStoreFile=/keystore_iam.jks")
-        from("netty4-http:proxy://0.0.0.0:8443?backlog=200&ssl=true&keyStoreFile=/keystore_rec_iam.jks&passphrase=123.pwdMunisys&trustStoreFile=/keystore_rec_iam.jks")
+        from("netty4-http:proxy://0.0.0.0:8443?backlog=200&ssl=true&keyStoreFile=/certs/keystore_iam.jks&passphrase=changeit&trustStoreFile=/certs/keystore_iam.jks")
             .routeId("muis_route1")
             .log(LoggingLevel.INFO, "-------------- IAM_MasterDataImport_Request_V1 (muis-fuse-masterdataimport_request_v1-transformation:iam_1.12-prod) START -----------------------\n\n\n")
             .setHeader("X-Request-ID", constant(UUID.randomUUID()))

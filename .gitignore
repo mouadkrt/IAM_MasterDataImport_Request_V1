@@ -4,3 +4,4 @@ target
 configuration/settings.xml
 .classpath
 .project
+certs
